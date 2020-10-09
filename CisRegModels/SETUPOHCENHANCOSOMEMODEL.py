@@ -609,14 +609,14 @@ class CRM:
 				momentum=self.args.momentum
 			if self.args.useMomentumOptimizer > 0:
 				if self.args.verbose>0: sys.stderr.write("Using MomentumOptimizer instead of Adam\n")
-				opt = tf.train.MomentumOptimizer(self.args.learningRate, momentum, use_nesterov = self.args.useNesterov>0);
+				opt = tf.compat.v1.train.MomentumOptimizer(self.args.learningRate, momentum, use_nesterov = self.args.useNesterov>0);
 		
 			elif self.args.useRMSProp>0:
 				if self.args.verbose>0: sys.stderr.write("Using RMSProp instead of Adam\n")
-				opt = tf.train.RMSPropOptimizer(self.args.learningRate, decay = self.args.rmsDecay, momentum=momentum, epsilon=self.args.rmsEpsilon);
+				opt = tf.compat.v1.train.RMSPropOptimizer(self.args.learningRate, decay = self.args.rmsDecay, momentum=momentum, epsilon=self.args.rmsEpsilon);
 		else:
 			if self.args.verbose>0: sys.stderr.write("Using AdamOptimizer\n")
-			opt = tf.train.AdamOptimizer(self.args.learningRate, epsilon=self.args.Aepsilon, beta1=self.args.Abeta1, beta2=self.args.Abeta2);
+			opt = tf.compat.v1.train.AdamOptimizer(self.args.learningRate, epsilon=self.args.Aepsilon, beta1=self.args.Abeta1, beta2=self.args.Abeta2);
 		
 		self.train_step = opt.minimize(self.myLoss, global_step=self.global_step);
 		
@@ -651,12 +651,12 @@ class CRM:
 			self.summaryWriter = tf.summary.FileWriter(self.args.tensorboard, self.sess.graph)
 		
 		init_op = tf.global_variables_initializer()
-		self.saver = tf.train.Saver()
+		self.saver = tf.compat.v1.train.Saver()
 		self.sess.run(init_op)
 		if self.args.restore is not None:
 			if self.args.verbose>1:
 				sys.stderr.write("Loading initial parameter settings: %s\n"%(self.args.restore))
-			reader = tf.train.NewCheckpointReader(self.args.restore);
+			reader = tf.compat.v1.train.NewCheckpointReader(self.args.restore);
 			restoringThese = {v.name[0:-2]: v for v in tf.global_variables()};
 			#print(list(restoringThese.keys()));
 			if "concentrations" in reader.get_variable_to_shape_map().keys()  and  self.args.VARIABLE:
@@ -674,15 +674,15 @@ class CRM:
 			if self.args.verbose>1:
 				sys.stderr.write("Loading these variables: %s\n"%(", ".join([k for k in list(restoringThese.keys())])))
 			restoringThese = [restoringThese[k] for k in list(restoringThese.keys())]
-			restorer = tf.train.Saver(restoringThese);
+			restorer = tf.compat.v1.train.Saver(restoringThese);
 			restorer.restore(self.sess, self.args.restore)
 		
 		#make sure there are no unnamed variables
 		import re;
-		#if [k.name for k in tf.trainable_variables() if re.search("Variable", k.name) is not None].len() > 0:
-		if len([k.name for k in tf.trainable_variables() if re.search("Variable", k.name) is not None]) > 0 and not self.args.VARIABLE:
-			print([k.name for k in tf.trainable_variables()])
-			raise(Exception("Error: one or more variables with default names: %s"%", ".join([k.name for k in tf.trainable_variables() if re.search("Variable", k.name) is not None])));
+		#if [k.name for k in tf.compat.v1.trainable_variables() if re.search("Variable", k.name) is not None].len() > 0:
+		if len([k.name for k in tf.compat.v1.trainable_variables() if re.search("Variable", k.name) is not None]) > 0 and not self.args.VARIABLE:
+			print([k.name for k in tf.compat.v1.trainable_variables()])
+			raise(Exception("Error: one or more variables with default names: %s"%", ".join([k.name for k in tf.compat.v1.trainable_variables() if re.search("Variable", k.name) is not None])));
 		
 	def saveParams(self, sess):
 		if self.args.noTrainMotifs==0:
