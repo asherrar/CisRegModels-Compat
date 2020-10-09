@@ -599,7 +599,7 @@ class CRM:
 			clrParams = self.args.cycleLearningRate.split(",")
 			learningRate = TFHELP.cycle_learning_rate(float(clrParams[0]), float(clrParams[1]), self.global_step, int(clrParams[2]), name="learningRate")
 		else:
-			learningRate =tf.train.exponential_decay(learningRate, self.global_step, 175, self.args.learningRateED, staircase=True, name="learningRate")
+			learningRate = tf.compat.v1.train.exponential_decay(learningRate, self.global_step, 175, self.args.learningRateED, staircase=True, name="learningRate")
 		if self.args.useMomentumOptimizer > 0 or self.args.useRMSProp>0:
 			if self.args.useMomentumOptimizer > 0 and self.args.useRMSProp>0:
 				raise Exception("Cannot use both MomentumOptimizer and RMSProp! pick one!");
