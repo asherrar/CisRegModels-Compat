@@ -421,10 +421,10 @@ class CRM:
 		
 		if self.args.useEBound>0: 
 			if self.args.verbose>0: sys.stderr.write("Using E-bound\n")
-			self.epBoundTensor = tf.math.add(tf.reduce_sum(tf.subtract(1.0,pNotBoundRCTensor), reduction_indices=[1,2]),tf.reduce_sum(tf.subtract(1.0,pNotBoundTensor), reduction_indices=[1,2])) # size: [None, numMotifs] #expected amount of binding
+			self.epBoundTensor = tf.math.add(tf.math.reduce_sum(tf.subtract(1.0,pNotBoundRCTensor), axis=[1,2]),tf.math.reduce_sum(tf.subtract(1.0,pNotBoundTensor), axis=[1,2])) # size: [None, numMotifs] #expected amount of binding
 		else:
 			if self.args.verbose>0: sys.stderr.write("Using P-bound\n")
-			self.epBoundTensor = tf.subtract(1.0,tf.multiply(tf.reduce_prod(pNotBoundRCTensor,reduction_indices=[1,2]),tf.reduce_prod(pNotBoundTensor, reduction_indices=[1,2]))) # size: [None, numMotifs] # p(bound)
+			self.epBoundTensor = tf.subtract(1.0,tf.multiply(tf.reduce_prod(pNotBoundRCTensor,axis=[1,2]),tf.reduce_prod(pNotBoundTensor, axis=[1,2]))) # size: [None, numMotifs] # p(bound)
 		
 		## POTENTIATION
 		if self.args.potentiation>0:
@@ -447,7 +447,7 @@ class CRM:
 				self.potentiation = tf.constant(initPotent.reshape([self.args.numMotifs]),name="potents");
 			seqPotentialByTFTensor = tf.multiply(self.epBoundTensor, self.potentiation); #size: [None,numMotifs]
 			self.constantPot = tf.Variable(tf.zeros(1),name="constantPot")
-			self.seqPotentialTensor = tf.sigmoid(tf.math.add(tf.reduce_sum(seqPotentialByTFTensor,reduction_indices=[1]), self.constantPot), name="seqPotentialTensor") #[None, 1]
+			self.seqPotentialTensor = tf.sigmoid(tf.math.add(tf.math.reduce_sum(seqPotentialByTFTensor,axis=[1]), self.constantPot), name="seqPotentialTensor") #[None, 1]
 		else:
 			if self.args.verbose>0: sys.stderr.write("Not using self.potentiation layer\n")
 		
@@ -461,8 +461,8 @@ class CRM:
 				#print(tf.Tensor.get_shape(pBoundPerPos))
 				#print(tf.Tensor.get_shape(positionalActivity))
 				if self.args.bindingLimits>0:
-					expectedActivitySense = tf.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity),reduction_indices=[1,2]) # size: [None,numMotifs]
-					expectedActivityRC = tf.reduce_sum(tf.multiply(pBoundPerPosRC, positionalActivityRC),reduction_indices=[1,2]) # size: [None,numMotifs]
+					expectedActivitySense = tf.math.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity),axis=[1,2]) # size: [None,numMotifs]
+					expectedActivityRC = tf.math.reduce_sum(tf.multiply(pBoundPerPosRC, positionalActivityRC),axis=[1,2]) # size: [None,numMotifs]
 					expectedActivityPerTF = tf.math.add( #min of positive self.activities and max of negative self.activities accounting for binding limits.
 						tf.nn.relu(                        tf.minimum(tf.reshape(tf.multiply(bindingLimits,self.activities),(1,self.args.numMotifs)),tf.math.add(expectedActivitySense, expectedActivityRC))), #positive
 						tf.negative(tf.nn.relu(tf.negative(tf.maximum(tf.reshape(tf.multiply(bindingLimits,self.activities),(1,self.args.numMotifs)),tf.math.add(expectedActivitySense, expectedActivityRC))))) #negative
@@ -471,9 +471,9 @@ class CRM:
 				else:
 					#expectedActivitySense = tf.multiply(tf.reshape(pBoundPerPos, (-1, self.args.seqLen*self.args.numMotifs)), tf.reshape(positionalActivity, (self.args.seqLen*self.args.numMotifs,1))) # size: [None,numMotifs]
 					#expectedActivityRC = tf.multiply(tf.reshape(pBoundPerPosRC, (-1, self.args.seqLen*self.args.numMotifs)), tf.reshape(positionalActivityRC, (self.args.seqLen*self.args.numMotifs,1))) # size: [None,1]
-					expectedActivitySense = tf.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity), reduction_indices=[1,2]) # size: [None,numMotifs]
+					expectedActivitySense = tf.math.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity), axis=[1,2]) # size: [None,numMotifs]
 					#print(tf.Tensor.get_shape(expectedActivitySense))
-					expectedActivityRC = tf.reduce_sum(tf.multiply(pBoundPerPosRC, positionalActivityRC), reduction_indices=[1,2])  # size: [None,numMotifs]
+					expectedActivityRC = tf.math.reduce_sum(tf.multiply(pBoundPerPosRC, positionalActivityRC), axis=[1,2])  # size: [None,numMotifs]
 					expectedActivityPerTF = tf.math.add(expectedActivitySense, expectedActivityRC);
 			else:
 				if self.args.useEBound>0:
@@ -488,7 +488,7 @@ class CRM:
 				#print(tf.Tensor.get_shape(pBoundPerPos))
 				#print(tf.Tensor.get_shape(positionalActivity))
 				if self.args.bindingLimits>0:
-					expectedActivitySense = tf.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity),reduction_indices=[1,2]) # size: [None,numMotifs]
+					expectedActivitySense = tf.math.reduce_sum(tf.multiply(pBoundPerPos, positionalActivity),axis=[1,2]) # size: [None,numMotifs]
 					expectedActivityPerTF = tf.math.add( #min of positive self.activities and max of negative self.activities accounting for binding limits.
 						tf.nn.relu(                        tf.minimum(tf.reshape(tf.multiply(bindingLimits,self.activities),(1,self.args.numMotifs)),expectedActivitySense)), #positive
 						tf.negative(tf.nn.relu(tf.negative(tf.maximum(tf.reshape(tf.multiply(bindingLimits,self.activities),(1,self.args.numMotifs)),expectedActivitySense)))) #negative
@@ -498,11 +498,11 @@ class CRM:
 		else: #no positional self.activities
 			if self.args.trainStrandedActivities>0: # account for strand-specific activity biases
 				if self.args.useEBound>0: 
-					self.epBoundTensor   = tf.reduce_sum(tf.subtract(1.0,  pNotBoundTensor), reduction_indices=[1,2], name="epBoundTensor") # size: [None, numMotifs] #expected amount of binding
-					self.epBoundTensorRC = tf.reduce_sum(tf.subtract(1.0,pNotBoundRCTensor), reduction_indices=[1,2], name="epBoundTensorRC") # size: [None, numMotifs] #expected amount of binding
+					self.epBoundTensor   = tf.math.reduce_sum(tf.subtract(1.0,  pNotBoundTensor), axis=[1,2], name="epBoundTensor") # size: [None, numMotifs] #expected amount of binding
+					self.epBoundTensorRC = tf.math.reduce_sum(tf.subtract(1.0,pNotBoundRCTensor), axis=[1,2], name="epBoundTensorRC") # size: [None, numMotifs] #expected amount of binding
 				else:
-					self.epBoundTensor = tf.subtract(1.0,tf.reduce_prod(pNotBoundTensor,reduction_indices=[1,2]), name="epBoundTensor") # numMotifs: [None, numMotifs] # p(bound)
-					self.epBoundTensorRC = tf.subtract(1.0,tf.reduce_prod(pNotBoundRCTensor,reduction_indices=[1,2]), name="epBoundTensorRC") # size: [None, numMotifs] # p(bound)
+					self.epBoundTensor = tf.subtract(1.0,tf.reduce_prod(pNotBoundTensor,axis=[1,2]), name="epBoundTensor") # numMotifs: [None, numMotifs] # p(bound)
+					self.epBoundTensorRC = tf.subtract(1.0,tf.reduce_prod(pNotBoundRCTensor,axis=[1,2]), name="epBoundTensorRC") # size: [None, numMotifs] # p(bound)
 				if self.args.potentiation>0:
 					self.epBoundTensor = tf.transpose(tf.multiply(tf.transpose(self.epBoundTensor), self.seqPotentialTensor), name="epBoundTensor"); # [None, numMotifs]
 					self.epBoundTensorRC = tf.transpose(tf.multiply(tf.transpose(self.epBoundTensorRC), self.seqPotentialTensor), name="epBoundTensorRC"); # [None, numMotifs]
@@ -525,7 +525,7 @@ class CRM:
 				expectedActivityPerTF = tf.multiply(self.epBoundTensor, self.activities); #size: [None,numMotifs]
 		
 		
-		expectedActivity = tf.reduce_sum(expectedActivityPerTF, reduction_indices=[1])
+		expectedActivity = tf.math.reduce_sum(expectedActivityPerTF, axis=[1])
 		
 		self.constant = tf.Variable(tf.zeros(1),name="constant")
 		
@@ -551,7 +551,7 @@ class CRM:
 			predELLLIndeces = tf.minimum(llSDLen-1, tf.maximum(0,tf.to_int32(tf.round(tf.multiply(predELY,(llSDLen/maxllMean))))), name="predELLLInd") 
 			predELYSDs = tf.nn.embedding_lookup(llSDTensor, predELLLIndeces, name="predELYSDs") #[None]
 			predZ = tv.compat.v1.divide(tf.subtract(predELY, self.realELY), predELYSDs, name="predZ")
-			negLogLik = tf.reduce_sum(tf.square(predZ), name="negLogLik")
+			negLogLik = tf.math.reduce_sum(tf.square(predZ), name="negLogLik")
 			self.myLoss = negLogLik;
 		else:
 			self.myLoss = self.mseTF;
@@ -564,29 +564,29 @@ class CRM:
 		if self.args.L1 is not None:
 			if self.args.verbose>0: sys.stderr.write("Using L1 regularization of self.activities with lambda=%s\n"%(self.args.L1))
 			self.args.L1 = float(self.args.L1);
-			paramPenaltyL1Tensor = tf.reduce_sum(tf.abs(self.activities))
-			paramNumActivityTensor = tf.reduce_sum(tf.cast(tf.greater(tf.abs(self.activities),EPSILON),tf.int32))
+			paramPenaltyL1Tensor = tf.math.reduce_sum(tf.abs(self.activities))
+			paramNumActivityTensor = tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(self.activities),EPSILON),tf.int32))
 			if self.args.potentiation>0:
-				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.reduce_sum(tf.abs(self.potentiation))
-				paramNumActivityTensor = paramNumActivityTensor +tf.reduce_sum(tf.cast(tf.greater(tf.abs(self.potentiation),EPSILON),tf.int32))
+				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.math.reduce_sum(tf.abs(self.potentiation))
+				paramNumActivityTensor = paramNumActivityTensor +tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(self.potentiation),EPSILON),tf.int32))
 			if self.args.trainStrandedActivities>0:
-				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.reduce_sum(tf.abs(self.activityDiffs))
-				paramNumActivityTensor = paramNumActivityTensor +tf.reduce_sum(tf.cast(tf.greater(tf.abs(self.activityDiffs),EPSILON),tf.int32))
+				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.math.reduce_sum(tf.abs(self.activityDiffs))
+				paramNumActivityTensor = paramNumActivityTensor +tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(self.activityDiffs),EPSILON),tf.int32))
 			if self.args.accIsAct>0:
 				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.abs(accActivity)
-				paramNumActivityTensor = paramNumActivityTensor +tf.reduce_sum(tf.cast(tf.greater(tf.abs(accActivity),EPSILON),tf.int32))
+				paramNumActivityTensor = paramNumActivityTensor +tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(accActivity),EPSILON),tf.int32))
 			if self.args.trainPositionalActivities>0:
-				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.reduce_sum(tf.abs(tf.slice(self.positionalActivityBias,[0,0],[1,self.args.numMotifs]))) #penalize only the first column of positional self.activities
+				paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.math.reduce_sum(tf.abs(tf.slice(self.positionalActivityBias,[0,0],[1,self.args.numMotifs]))) #penalize only the first column of positional self.activities
 				#So only one position per TF is L1; the differences between the others are L2
-				paramNumActivityTensor = paramNumActivityTensor +tf.reduce_sum(tf.cast(tf.greater(tf.abs(tf.slice(self.positionalActivityBias,[0,0],[1,self.args.numMotifs])),EPSILON),tf.int32))
+				paramNumActivityTensor = paramNumActivityTensor +tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(tf.slice(self.positionalActivityBias,[0,0],[1,self.args.numMotifs])),EPSILON),tf.int32))
 				if self.args.trainStrandedActivities>0:
-					paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.reduce_sum(tf.abs(tf.slice(self.positionalActivityBiasRC,[0,0],[1,self.args.numMotifs]))) 
-					paramNumActivityTensor = paramNumActivityTensor +tf.reduce_sum(tf.cast(tf.greater(tf.abs(tf.slice(self.positionalActivityBiasRC,[0,0],[1,self.args.numMotifs])),EPSILON),tf.int32))
+					paramPenaltyL1Tensor = paramPenaltyL1Tensor + tf.math.reduce_sum(tf.abs(tf.slice(self.positionalActivityBiasRC,[0,0],[1,self.args.numMotifs]))) 
+					paramNumActivityTensor = paramNumActivityTensor +tf.math.reduce_sum(tf.cast(tf.greater(tf.abs(tf.slice(self.positionalActivityBiasRC,[0,0],[1,self.args.numMotifs])),EPSILON),tf.int32))
 			self.myLoss = tf.math.add(self.myLoss, tf.multiply(paramPenaltyL1Tensor,self.args.L1));
 		
 		if self.args.L2Pos is not None and self.args.trainPositionalActivities>0:
 			self.args.L2Pos = float(self.args.L2Pos);
-			paramPenaltyL2PosTensor = tf.reduce_sum(tf.abs(tf.subtract(tf.slice(self.positionalActivityBias,[0,0],[self.args.seqLen-1,self.args.numMotifs]),tf.slice(self.positionalActivityBias,[1,0],[self.args.seqLen-1,self.args.numMotifs]))))
+			paramPenaltyL2PosTensor = tf.math.reduce_sum(tf.abs(tf.subtract(tf.slice(self.positionalActivityBias,[0,0],[self.args.seqLen-1,self.args.numMotifs]),tf.slice(self.positionalActivityBias,[1,0],[self.args.seqLen-1,self.args.numMotifs]))))
 			if self.args.trainStrandedActivities>0:
 				paramPenaltyL2PosTensor = paramPenaltyL2PosTensor + tf.nn.l2_loss(tf.subtract(tf.slice(self.positionalActivityBiasRC,[0,0],[self.args.seqLen-1,self.args.numMotifs]),tf.slice(self.positionalActivityBiasRC,[1,0],[self.args.seqLen-1,self.args.numMotifs])))
 			self.myLoss = tf.math.add(self.myLoss, tf.multiply(paramPenaltyL2PosTensor, self.args.L2Pos));
