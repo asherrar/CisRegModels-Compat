@@ -35,16 +35,16 @@ class CRM:
 			self.sess = tf.compat.v1.Session()
 			tf.compat.v1.saved_model.loader.load(self.sess, ['main'], self.args.loadModel)
 			varNames = [v.name for v in tf.compat.v1.global_variables()];
-			predELY = tf.get_default_graph().get_tensor_by_name("predELY:0")
-			self.ohcX = tf.get_default_graph().get_tensor_by_name("ohcX:0")
+			predELY = tf.compat.v1.get_default_graph().get_tensor_by_name("predELY:0")
+			self.ohcX = tf.compat.v1.get_default_graph().get_tensor_by_name("ohcX:0")
 			if self.args.outputBinding>0:
-				self.epBoundTensor = tf.get_default_graph().get_tensor_by_name("epBoundTensor:0")
+				self.epBoundTensor = tf.compat.v1.get_default_graph().get_tensor_by_name("epBoundTensor:0")
 				if "epBoundTensorRC:0" in varNames:
 					self.args.trainStrandedActivities=1
-					self.epBoundTensorRC = tf.get_default_graph().get_tensor_by_name("epBoundTensorRC:0")
+					self.epBoundTensorRC = tf.compat.v1.get_default_graph().get_tensor_by_name("epBoundTensorRC:0")
 			if "seqPotentialTensor:0" in varNames:
 				self.args.potentiation=1
-				self.seqPotentialTensor = tf.get_default_graph().get_tensor_by_name("seqPotentialTensor:0")
+				self.seqPotentialTensor = tf.compat.v1.get_default_graph().get_tensor_by_name("seqPotentialTensor:0")
 		else:
 			self.makeGraph();
 		outFile.write("actual\tpredicted");
