@@ -2,6 +2,7 @@ from CisRegModels import MYUTILS
 from CisRegModels import PWM;
 from CisRegModels import TFHELP;
 import tensorflow as tf
+import tensorflow.compat.v1
 import numpy as np;
 from datetime import datetime
 import os;
