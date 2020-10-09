@@ -34,7 +34,7 @@ class CRM:
 			sys.stderr.write("Loading saved model: %s\n"%(self.args.loadModel));
 			self.sess = tf.compat.v1.Session()
 			tf.compat.v1.saved_model.loader.load(self.sess, ['main'], self.args.loadModel)
-			varNames = [v.name for v in tf.global_variables()];
+			varNames = [v.name for v in tf.compat.v1.global_variables()];
 			predELY = tf.get_default_graph().get_tensor_by_name("predELY:0")
 			self.ohcX = tf.get_default_graph().get_tensor_by_name("ohcX:0")
 			if self.args.outputBinding>0:
@@ -657,7 +657,7 @@ class CRM:
 			if self.args.verbose>1:
 				sys.stderr.write("Loading initial parameter settings: %s\n"%(self.args.restore))
 			reader = tf.compat.v1.train.NewCheckpointReader(self.args.restore);
-			restoringThese = {v.name[0:-2]: v for v in tf.global_variables()};
+			restoringThese = {v.name[0:-2]: v for v in tf.compat.v1.global_variables()};
 			#print(list(restoringThese.keys()));
 			if "concentrations" in reader.get_variable_to_shape_map().keys()  and  self.args.VARIABLE:
 				raise Exception("BACKWARD COMPATIBILITY ERROR: loaded graph has variable named concentrations - re-run withOUT -VARIABLE option\n");
