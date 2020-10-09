@@ -622,9 +622,9 @@ class CRM:
 		
 		#raise Exception("Reached bad state=%d for '%s.%d' '%s' at line '%s'" %(state,mid,ver,tfid,line));
 		if self.args.trace > 2:
-			self.sess = tf.compat.v1.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1, log_device_placement=True));
+			self.sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(intra_op_parallelism_threads=self.args.threads-1, log_device_placement=True));
 		else:
-			self.sess = tf.compat.v1.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1));
+			self.sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(intra_op_parallelism_threads=self.args.threads-1));
 		
 		
 		if self.args.tensorboard is not None:
