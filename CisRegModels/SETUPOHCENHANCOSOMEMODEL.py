@@ -278,7 +278,7 @@ class CRM:
 		### set up tensorflow graph
 		#useful: tf.Tensor.get_shape(predELY)
 		#sequence layer
-		self.ohcX = tf.placeholder(tf.float32, [None,4,self.args.seqLen,1], name="ohcX") # here, [None, 4,...] indicate that the first dimention is of unknown length
+		self.ohcX = tf.compat.v1.placeholder(tf.float32, [None,4,self.args.seqLen,1], name="ohcX") # here, [None, 4,...] indicate that the first dimention is of unknown length
 		#motif parameters:
 		#allow for the user to provide a list of PWMs that we initialize the motifs tensor to
 		if self.args.motifsFP is not None:
@@ -532,7 +532,7 @@ class CRM:
 			predELY= tf.add(tf.add(tf.reshape(expectedActivity, [-1]),tf.reshape(accActivELTensor, [-1])), self.constant, name="predELY") #size: [None]
 		else:
 			predELY= tf.add(tf.reshape(expectedActivity, [-1]),self.constant, name="predELY") #size: [None]
-		self.realELY = tf.placeholder(tf.float32, [None]);
+		self.realELY = tf.compat.v1.placeholder(tf.float32, [None]);
 		
 		EPSILON=0.0001
 		
