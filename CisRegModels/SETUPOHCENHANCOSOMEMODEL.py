@@ -650,7 +650,7 @@ class CRM:
 			self.mergedSummaries = tf.summary.merge_all()
 			self.summaryWriter = tf.summary.FileWriter(self.args.tensorboard, self.sess.graph)
 		
-		init_op = tf.global_variables_initializer()
+		init_op = tf.compat.v1.global_variables_initializer()
 		self.saver = tf.compat.v1.train.Saver()
 		self.sess.run(init_op)
 		if self.args.restore is not None:
