@@ -32,7 +32,7 @@ class CRM:
 			raise Exception("Must specify either -res or -M")
 		if self.args.loadModel is not None:
 			sys.stderr.write("Loading saved model: %s\n"%(self.args.loadModel));
-			self.sess = tf.Session()
+			self.sess = tf.compat.v1.Session()
 			tf.saved_model.loader.load(self.sess, ['main'], self.args.loadModel)
 			varNames = [v.name for v in tf.global_variables()];
 			predELY = tf.get_default_graph().get_tensor_by_name("predELY:0")
@@ -622,9 +622,9 @@ class CRM:
 		
 		#raise Exception("Reached bad state=%d for '%s.%d' '%s' at line '%s'" %(state,mid,ver,tfid,line));
 		if self.args.trace > 2:
-			self.sess = tf.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1, log_device_placement=True));
+			self.sess = tf.compat.v1.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1, log_device_placement=True));
 		else:
-			self.sess = tf.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1));
+			self.sess = tf.compat.v1.Session(config=tf.ConfigProto(intra_op_parallelism_threads=self.args.threads-1));
 		
 		
 		if self.args.tensorboard is not None:
