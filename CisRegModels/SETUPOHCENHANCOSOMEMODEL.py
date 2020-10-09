@@ -33,7 +33,7 @@ class CRM:
 		if self.args.loadModel is not None:
 			sys.stderr.write("Loading saved model: %s\n"%(self.args.loadModel));
 			self.sess = tf.compat.v1.Session()
-			tf.saved_model.loader.load(self.sess, ['main'], self.args.loadModel)
+			tf.compat.v1.saved_model.loader.load(self.sess, ['main'], self.args.loadModel)
 			varNames = [v.name for v in tf.global_variables()];
 			predELY = tf.get_default_graph().get_tensor_by_name("predELY:0")
 			self.ohcX = tf.get_default_graph().get_tensor_by_name("ohcX:0")
@@ -220,7 +220,7 @@ class CRM:
 			import shutil
 			if self.args.verbose>1: sys.stderr.write(" deleting old model directory... ");
 			shutil.rmtree(modelSaveDir)
-		builder = tf.saved_model.builder.SavedModelBuilder(modelSaveDir)
+		builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(modelSaveDir)
 		builder.add_meta_graph_and_variables(self.sess, ["main"])#, signature_def_map=foo_signatures, assets_collection=foo_assets)
 		# Add a second MetaGraphDef for inference.
 		builder.save()
