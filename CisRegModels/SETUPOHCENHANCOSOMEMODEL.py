@@ -414,8 +414,8 @@ class CRM:
 		
 		logKdConcRatioTensor = tf.subtract(self.logConcs,motifScanTensor) # [None, 1, seqLen,numMotifs] 
 		logKdConcRatioRCTensor = tf.subtract(self.logConcs,motifScanRCTensor) # [None, 1, seqLen,numMotifs] 
-		pNotBoundTensor1 = tf.math.div(1.0,tf.math.add(1.0,tf.exp(logKdConcRatioTensor))); # size: [None,1,seqLen,numMotifs]
-		pNotBoundRCTensor1 = tf.math.div(1.0,tf.math.add(1.0,tf.exp(logKdConcRatioRCTensor))); # size: [None,1,seqLen,numMotifs]
+		pNotBoundTensor1 = tf.math.divide(1.0,tf.math.add(1.0,tf.exp(logKdConcRatioTensor))); # size: [None,1,seqLen,numMotifs]
+		pNotBoundRCTensor1 = tf.math.divide(1.0,tf.math.add(1.0,tf.exp(logKdConcRatioRCTensor))); # size: [None,1,seqLen,numMotifs]
 		pNotBoundTensor = pNotBoundTensor1;
 		pNotBoundRCTensor = pNotBoundRCTensor1
 		
@@ -550,7 +550,7 @@ class CRM:
 			llSDTensor = tf.constant(llSDs, name="llSDs")
 			predELLLIndeces = tf.minimum(llSDLen-1, tf.maximum(0,tf.to_int32(tf.round(tf.multiply(predELY,(llSDLen/maxllMean))))), name="predELLLInd") 
 			predELYSDs = tf.nn.embedding_lookup(llSDTensor, predELLLIndeces, name="predELYSDs") #[None]
-			predZ = tv.compat.v1.div(tf.subtract(predELY, self.realELY), predELYSDs, name="predZ")
+			predZ = tv.compat.v1.divide(tf.subtract(predELY, self.realELY), predELYSDs, name="predZ")
 			negLogLik = tf.reduce_sum(tf.square(predZ), name="negLogLik")
 			self.myLoss = negLogLik;
 		else:
