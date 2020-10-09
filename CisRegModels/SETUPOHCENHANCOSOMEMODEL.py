@@ -8,6 +8,8 @@ from datetime import datetime
 import os;
 import sys
 
+tf.compat.v1.disable_v2_behavior()
+
 BASES = ['A','C','G','T']
 
 class CRM:
