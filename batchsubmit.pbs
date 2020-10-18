@@ -2,7 +2,7 @@
  
 #PBS -l walltime=72:00:00,select=1:ncpus=12:ompthreads=12:ngpus=2:mem=186gb
 #PBS -N asherrar-test
-#PBS -A ex-cdeboer-1
+#PBS -A ex-cdeboer-1-gpu
 #PBS -m abe
 #PBS -M andrew.sherrard@alumni.ubc.ca
 #PBS -o output.txt
