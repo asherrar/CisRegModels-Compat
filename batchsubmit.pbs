@@ -5,8 +5,8 @@
 #PBS -A ex-cdeboer-1-gpu
 #PBS -m abe
 #PBS -M andrew.sherrard@alumni.ubc.ca
-#PBS -o output.txt
-#PBS -e error.txt
+#PBS -o /scratch/ex-cdeboer-1/asherrar/output.txt
+#PBS -e /scratch/ex-cdeboer-1/asherrar/error.txt
  
 ################################################################################
  
@@ -15,7 +15,25 @@ module load cuda
 module load python/3.7.3
 module load miniconda3/4.6.14
  
+PROJ_DIR=/arc/home/asherrar/CisRegModels-Compat
+SCRATCH_DIR=/scratch/ex-cdeboer-1/asherrar
+
 cd $PBS_O_WORKDIR
 conda create -n tf-gpu tensorflow-gpu
 conda activate tf-gpu
-./asherrar-test.bat
+
+set -e #make it so that the script exits completely if one command fails
+echo "############################################"
+echo "Creating One-Hot representation of sequences"
+echo "############################################"
+seqsToOHC.py -i $PROJ_DIR/asherrar-test/GSE104878_20160609_average_promoter_ELs_per_seq_pTpA_ALL.shuffled.txt.gz -m 110 -o $SCRATCH_DIR/GSE104878_20160609_average_promoter_ELs_per_seq_pTpA_ALL.shuffled.ohc.gz
+
+echo "############################################"
+echo "learning model from known motifs, holding concentrations and motifs static"
+echo "############################################"
+makeThermodynamicEnhancosomeModel.py -i $SCRATCH_DIR/GSE104878_20160609_average_promoter_ELs_per_seq_pTpA_ALL.shuffled.ohc.gz  -o $SCRATCH_DIR/test.model.AP -eb -sl 110 -nm 250 -ml 30  -b 128 -v -v -v -se 100000 -dm $PROJ_DIR/asherrar-test/allTF_PKdMFiles_polyA_and_FZF1.txt  -ic $PROJ_DIR/asherrar-test/allTF_minKds_polyA_and_FZF1.txt -po -lr 0.04 -ntm -ntc -r 20 -ia 0.01 -ip 0.01
+
+echo "############################################"
+echo "now learning additional parameters: concentration and motif"
+echo "############################################"
+makeThermodynamicEnhancosomeModel.py -i $SCRATCH_DIR/GSE104878_20160609_average_promoter_ELs_per_seq_pTpA_ALL.shuffled.ohc.gz  -o $SCRATCH_DIR/test.model.APCM -eb -sl 110 -nm 250 -ml 30  -b 128 -v -v -v -se 100000 -dm $PROJ_DIR/asherrar-test/allTF_PKdMFiles_polyA_and_FZF1.txt  -ic $PROJ_DIR/asherrar-test/allTF_minKds_polyA_and_FZF1.txt -po -lr 0.001  -r 20 -ia 0.01 -ip 0.01 -res $PROJ_DIR/asherrar-test/test.model.AP.ckpt
