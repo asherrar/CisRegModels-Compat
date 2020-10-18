@@ -4,7 +4,7 @@
 #PBS -N asherrar-test
 #PBS -A ex-cdeboer-1
 #PBS -m abe
-#PBS -M andrew.sherrard@ubc.ca
+#PBS -M andrew.sherrard@student.ubc.ca
 #PBS -o output.txt
 #PBS -e error.txt
  
