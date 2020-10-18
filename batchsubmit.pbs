@@ -1,0 +1,21 @@
+#!/bin/bash
+ 
+#PBS -l walltime=72:00:00,select=1:ncpus=12:ompthreads=12:ngpus=2:mem=186gb
+#PBS -N asherrar-test
+#PBS -A ex-cdeboer-1
+#PBS -m abe
+#PBS -M andrew.sherrard@ubc.ca
+#PBS -o output.txt
+#PBS -e error.txt
+ 
+################################################################################
+ 
+module load gcc
+module load cuda
+module load python/3.7.3
+module load miniconda3/4.6.14
+ 
+cd $PBS_O_WORKDIR
+
+conda activate tf-gpu
+./asherrar-test.bat
